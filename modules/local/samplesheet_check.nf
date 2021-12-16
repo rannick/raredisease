@@ -20,7 +20,7 @@ process SAMPLESHEET_CHECK {
     path samplesheet
 
     output:
-    path '*.csv'
+    path '*.csv',  emit: valid_csv
 
     script: // This script is bundled with the pipeline, in nf-core/raredisease/bin/
     """

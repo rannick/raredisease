@@ -104,6 +104,8 @@ include { DEEPVARIANT_CALLER } from '../subworkflows/local/deepvariant_caller' a
     split_multiallelics_options: modules['bcftools_norm_split_multiallelics'],
     tabix_options: modules['tabix']
     )
+
+include { QC_VCF } from '../subworkflows/local/qc_vcf' addParams ( options: [:] )
 /*
 ========================================================================================
     RUN MAIN WORKFLOW
@@ -162,7 +164,26 @@ workflow RAREDISEASE {
                         PREPARE_GENOME.out.fai,
                         INPUT_CHECK.out.ch_case_info
                         )
+    // ch_caller_vcf = DEEPVARIANT_CALLER.out.vcf
+    // ch_caller_tbi = DEEPVARIANT_CALLER.out.tbi
+
+
     ch_software_versions = ch_software_versions.mix(DEEPVARIANT_CALLER.out.deepvariant_version.ifEmpty(null))
+
+    //
+    // MODULE: QC_VCF
+    //
+    QC_VCF (
+                        INPUT_CHECK.out.valid_csv,
+                        DEEPVARIANT_CALLER.out.vcf,
+                        DEEPVARIANT_CALLER.out.tbi,
+
+                        )
+
+
+    ch_software_versions = ch_software_versions.mix(QC_VCF.out.peddy_version.ifEmpty(null))
+
+
 
     //
     // MODULE: Pipeline reporting
@@ -198,6 +219,9 @@ workflow RAREDISEASE {
     multiqc_report       = MULTIQC.out.report.toList()
     ch_software_versions = ch_software_versions.mix(MULTIQC.out.version.ifEmpty(null))
 }
+
+
+
 
 /*
 ========================================================================================

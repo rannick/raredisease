@@ -24,6 +24,7 @@ workflow INPUT_CHECK {
     ch_case_info    // channel: [ case_id ]
     reads           // channel: [ val(meta), [ reads ] ]
     samples         // channel: [ sample_id, sex, phenotype, paternal_id, maternal_id, case_id ]
+    valid_csv       = SAMPLESHEET_CHECK.out.valid_csv
 }
 
 // Function to get list of [ meta, [ fastq_1, fastq_2 ] ]
@@ -31,8 +32,8 @@ def create_fastq_channels(LinkedHashMap row) {
     def meta = [:]
     meta.id           = row.sample
     meta.single_end   = row.single_end.toBoolean()
-
-    // TODO: add read group to the meta map
+    //TODO: think about adding LB and PU, make sure only illumina will be used, ID can also contain a flowcell id
+    meta.read_group   =     "\'@RG\\tID:"+row.sample + "_" + row.fastq_1.split('/')[0].split('_R1*.fastq')[0] + "_" + row.lane + "\\tPL:ILLUMINA\\tSM:"+row.sample.split('_')[0]+"\'"
 
     def array = []
     if (!file(row.fastq_1).exists()) {
